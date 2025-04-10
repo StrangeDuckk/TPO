@@ -22,7 +22,6 @@ public class Tools {
         LinkedHashMap<String, Object> dane = new LinkedHashMap<String,Object>();
         try (InputStream inputStream = Files.newInputStream(Paths.get(fileName))) {
             dane = yaml.load(inputStream);
-            System.out.println(dane);
         }
         Options options = new Options(
                 (String) dane.get("host"),
