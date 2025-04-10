@@ -6,10 +6,6 @@
 
 package zad1;
 
-//zastosowac klasy Java Time API (pakiet java.time) m.in.
-//LocalDate, LocalDateTime, ZonedDateTime, ChronoUnit, Period.
-
-import jdk.nashorn.internal.runtime.ECMAException;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -61,6 +57,10 @@ public class Time {
         long dniPomiedzy = ChronoUnit.DAYS.between(localPoczatek.toLocalDate(), localKoniec.toLocalDate());
         if (localKoniec.toLocalTime().isAfter(localPoczatek.toLocalTime()))
             dniPomiedzy++;
+        if (localPoczatek.getDayOfYear() == localKoniec.getDayOfYear() &&
+            localPoczatek.getMonth() == localKoniec.getMonth() &&
+            localPoczatek.getYear() == localKoniec.getYear())
+            dniPomiedzy = 0;
         double tygodnie = Math.round((dniPomiedzy / 7.0) * 100) / 100.0;
         long godziny = ChronoUnit.HOURS.between(localPoczatek.atZone(ZoneId.of("Europe/Warsaw")), localKoniec.atZone(ZoneId.of("Europe/Warsaw")));
         long minuty = ChronoUnit.MINUTES.between(localPoczatek.atZone(ZoneId.of("Europe/Warsaw")), localKoniec.atZone(ZoneId.of("Europe/Warsaw")));
@@ -84,19 +84,21 @@ public class Time {
             wynik += dniPomiedzy+" dzień,";
 
         if (tygodnie == 1)
-            wynik += tygodnie + " tydzien\n";
+            wynik += tygodnie + " tydzien";
         else if (tygodnie>1 && tygodnie < 5)
-            wynik += " tygodne " + tygodnie + "\n";
+            wynik += " tygodne " + tygodnie;
         else
-            wynik+= " tygodni " + tygodnie + "\n";
+            wynik+= " tygodni " + tygodnie;
 
         return wynik;
     }
     private static String formatowanieGodzin(long godziny, long minuty) {
-        return " - godzin: " + godziny + ", minut: " + minuty +"\n";
+        return "\n - godzin: " + godziny + ", minut: " + minuty;
     }
     private static String formatowanieKalendarzowo(Period period) {
-        String wynik = " - kalendarzowo: ";
+        String wynik = "\n - kalendarzowo: ";
+        if (period.getDays() == 0 && period.getMonths() == 0 && period.getYears() == 0)
+            return "";
 
         if(period.getYears() != 0)
             if (period.getYears() == 1)
