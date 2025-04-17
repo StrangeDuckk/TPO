@@ -15,8 +15,8 @@ public class Service {
     private String kraj;
     private String miasto;
     private String podanaWaluta = null;
-    private final String firstAPI = "e15f9b3199d2e9e37bb793606c56bf0f";
-    private final String secondAPI = "938bdbb9c4065a2b6f3875aa";
+    private final String firstAPI = "yourApi";
+    private final String secondAPI = "yourApi";
 
     public Service(String kraj) {
         this.kraj = kraj;
