@@ -12,8 +12,9 @@ import java.util.concurrent.*;
 
 public class Main {
 
-  public static void main(String[] args) throws Exception {
-    String fileName = System.getProperty("user.home") + "/PassTimeServerOptions.yaml";
+  public static void main(String[] args) throws Exception {//todo na koniec odkomentowac
+//    String fileName = System.getProperty("user.home") + "/PassTimeServerOptions.yaml";
+    String fileName = "PassTimeServerOptions.yaml";
     Options opts = Tools.createOptionsFromYaml(fileName);
     String host = opts.getHost();
     int port = opts.getPort();
@@ -30,34 +31,34 @@ public class Main {
     // start clients
     clRequests.forEach( (id, reqList) -> {
       Client c = new Client(host, port, id);
-      if (concur) {
-        ClientTask ctask = ClientTask.create(c, reqList, showRes);
-        ctasks.add(ctask);
-        es.execute(ctask);
-      } else {
-        c.connect();
-        c.send("login " + id);
-        for(String req : reqList) {
-          String res = c.send(req);
-          if (showRes) System.out.println(res);
-        }
-        String clog = c.send("bye and log transfer");
-        System.out.println(clog);
-      }
+//      if (concur) {
+//        ClientTask ctask = ClientTask.create(c, reqList, showRes);
+//        ctasks.add(ctask);
+//        es.execute(ctask);
+//      } else {
+//        c.connect();
+//        c.send("login " + id);
+//        for(String req : reqList) {
+//          String res = c.send(req);
+//          if (showRes) System.out.println(res);
+//        }
+//        String clog = c.send("bye and log transfer");
+//        System.out.println(clog);
+//      }
     });
 
-    if (concur) {
-      ctasks.forEach( task -> {
-        try {
-          String log = task.get();
-          clogs.add(log);
-        } catch (InterruptedException | ExecutionException exc) {
-          System.out.println(exc);
-        }
-      });
-      clogs.forEach( System.out::println);
-      es.shutdown();
-    }
+//    if (concur) {
+//      ctasks.forEach( task -> {
+//        try {
+//          String log = task.get();
+//          clogs.add(log);
+//        } catch (InterruptedException | ExecutionException exc) {
+//          System.out.println(exc);
+//        }
+//      });
+//      clogs.forEach( System.out::println);
+//      es.shutdown();
+//    }
     s.stopServer();
     System.out.println("\n=== Server log ===");
     System.out.println(s.getServerLog());
