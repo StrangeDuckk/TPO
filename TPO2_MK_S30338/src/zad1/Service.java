@@ -28,7 +28,7 @@ public class Service {
         int koniec = countryResponse.indexOf("\"",poczatek+1);
         String countryCode = countryResponse.substring(poczatek,koniec);
 
-        // api key: e15f9b3199d2e9e37bb793606c56bf0f
+        // api key:
         String response = fetchJson("https://api.openweathermap.org/data/2.5/weather?q=" + town + "," + countryCode + "&appid=" + firstAPI);
         if (response == null)
             return "Dane dla podanego miasta nie istnieja!";
@@ -38,7 +38,7 @@ public class Service {
     public Double getRateFor(String waluta) {
         podanaWaluta = waluta;
         //strona: https://v6.exchangerate-api.com/v6/938bdbb9c4065a2b6f3875aa/latest/USD
-        // api key: 938bdbb9c4065a2b6f3875aa
+        // api key:
         if (waluta.equals(walutaKraju())) {
             System.out.println(1.0);
             return 1.0;
