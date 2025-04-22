@@ -83,12 +83,14 @@ public class Time {
         else
             wynik += dniPomiedzy+" dzień,";
 
+        String tyg = (tygodnie%1==0)? String.valueOf((int)tygodnie): String.valueOf(tygodnie);
+
         if (tygodnie == 1)
-            wynik += tygodnie + " tydzien";
-        else if (tygodnie>1 && tygodnie < 5)
-            wynik += " tygodne " + tygodnie;
+            wynik += tyg + " tydzien";
+        else if (tygodnie>1 && tygodnie < 5) //todo
+            wynik += " tygodne " + tyg; // przy pelnych liczbach bez ".0"
         else
-            wynik+= " tygodni " + tygodnie;
+            wynik+= " tygodni " + tyg;// przy pelnych liczbach bez ".0"
 
         return wynik;
     }

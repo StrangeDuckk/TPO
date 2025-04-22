@@ -6,132 +6,141 @@
 
 package zad1;
 
-
-import com.sun.org.apache.xerces.internal.util.DatatypeMessageFormatter;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
     private String host;
     private int port;
-    private String log;
-    private Thread serverThread;
-    private Selector selector;//do obslugi wielu kanalow w jednym watku
-    private boolean running = false;
-    private Map<SocketChannel,String> clientLogs = new HashMap<>();
+    private Selector selector;
+    private ServerSocketChannel serverChannel;
+    private volatile boolean running = false;
+    private final Map<SocketChannel, String> clientIds = new HashMap<>();
+    private final Map<String, List<String>> clientLogs = new ConcurrentHashMap<>();
+    private final StringBuilder serverLog = new StringBuilder();
 
     public Server(String host, int port) {
         this.host = host;
         this.port = port;
-        this.log = "=== Server log ===\n";
     }
 
     public void startServer() {
-        this.running = true;
-        serverThread = new Thread(() ->{
+        new Thread(() -> {
             try {
-                ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-                serverSocketChannel.bind( new InetSocketAddress(host,port));
-                serverSocketChannel.configureBlocking(false); // dla nieblokowania klientow
                 selector = Selector.open();
-                serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT); //nasluchiwanie polaczen z uzyciem selectora, nieblokujaco
+                serverChannel = ServerSocketChannel.open();
+                serverChannel.bind(new InetSocketAddress(host, port));
+                serverChannel.configureBlocking(false);
+                serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+                running = true;
 
-                while (running){
-                    selector.select(); // oczekiwanie na wiadomosc do odczytu
-                    Set<SelectionKey> keys = selector.selectedKeys(); // jesli ktos sie polaczyl, mozemy zaakceprowac, jesli wyslal, odczytac
-                    Iterator<SelectionKey> iterator = keys.iterator(); //iterujemy po kluczach, kanalach z wydazeniami
+                while (running) {
+                    selector.select();
+                    Set<SelectionKey> keys = selector.selectedKeys();
+                    Iterator<SelectionKey> it = keys.iterator();
 
-                    while (iterator.hasNext()){
-                        SelectionKey key = iterator.next();
-                        iterator.remove();// usuwamy zeby zaraz nie byl znow przetwarzany
+                    while (it.hasNext()) {
+                        SelectionKey key = it.next();
+                        it.remove();
 
-                        if (key.isAcceptable()){
-                            handleAccpet(serverSocketChannel); //akceptowanie polaczenia, rejestracja klienta - kanalu do odczytu
-                        }
-                        else if (key.isReadable()){
-                            handleRead(key);//odczytanie danych od klienta
+                        if (key.isAcceptable()) {
+                            handleAccept();
+                        } else if (key.isReadable()) {
+                            handleRead(key);
                         }
                     }
-
                 }
+                selector.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
-        });
-        serverThread.start();
-    }
-
-    private void handleRead(SelectionKey key) throws IOException {
-        SocketChannel client = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        StringBuilder request = new StringBuilder();
-
-        int read = client.read(buffer);
-        if (read == -1){
-            client.close();
-            return;
-        }
-        buffer.flip();
-        while(buffer.hasRemaining())
-            request.append((char) buffer.get());
-
-        String requestStr = request.toString().trim();
-        String response = processRequest(client, requestStr);
-
-        if (response != null)
-        {
-            ByteBuffer outBuf = ByteBuffer.wrap(response.getBytes());
-            client.write(outBuf);
-        }
-        client.close();
-    }
-
-    private String processRequest(SocketChannel client, String requestStr) {
-        String clientLog = clientLogs.get(client);
-        String now = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-
-        return "processRequest";
-    }
-
-    private void handleAccpet(ServerSocketChannel serverSocketChannel) throws IOException {
-        SocketChannel client = serverSocketChannel.accept();
-        client.configureBlocking(false);
-        client.register(selector, SelectionKey.OP_READ);
-        clientLogs.put(client, String.valueOf(new StringBuilder()));
+        }).start();
     }
 
     public void stopServer() {
         running = false;
-        if (selector != null){
-            try{
-                selector.wakeup(); //dla zebrania ostatniej wiadomosci ktora mogla wpasc
-                selector.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            if (selector != null) selector.wakeup();
+            if (serverChannel != null) serverChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        if (serverThread != null){
-            try {
-                serverThread.join(); //czeka az watek sie skonczy przed zamknieciem go
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-    public void updateLog(String update){
-        this.log += update;
-    }
-    public String getServerLog() {
-        return this.log;
     }
 
+    public String getServerLog() {
+        return serverLog.toString();
+    }
+
+    private void handleAccept() throws IOException {
+        SocketChannel client = serverChannel.accept();
+        client.configureBlocking(false);
+        client.register(selector, SelectionKey.OP_READ, ByteBuffer.allocate(1024));
+    }
+
+    private void handleRead(SelectionKey key) {
+        SocketChannel client = (SocketChannel) key.channel();
+        ByteBuffer buffer = (ByteBuffer) key.attachment();
+        try {
+            int read = client.read(buffer);
+            if (read == -1) {
+                client.close();
+                return;
+            }
+
+            buffer.flip();
+            String msg = new String(buffer.array(), 0, buffer.limit()).trim();
+            buffer.clear();
+
+            String response = process(client, msg);
+            client.write(ByteBuffer.wrap((response + "\n").getBytes()));
+        } catch (IOException e) {
+            try {
+                client.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private String process(SocketChannel client, String msg) {
+        String time = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
+        String clientId = clientIds.getOrDefault(client, "unknown");
+
+        if (msg.startsWith("login")) {
+            String id = msg.split(" ")[1];
+            clientIds.put(client, id);
+            clientLogs.putIfAbsent(id, new ArrayList<>());
+            clientLogs.get(id).add("logged in");
+            serverLog.append(id).append(" logged in at ").append(time).append("\n");
+            return "logged in";
+        }
+
+        if (msg.equals("bye")) {
+            clientLogs.get(clientId).add("logged out");
+            serverLog.append(clientId).append(" logged out at ").append(time).append("\n");
+            return "logged out";
+        }
+
+        if (msg.equals("bye and log transfer")) {
+            clientLogs.get(clientId).add("logged out");
+            serverLog.append(clientId).append(" logged out at ").append(time).append("\n");
+            StringBuilder log = new StringBuilder();
+            log.append("=== ").append(clientId).append(" log start ===\n");
+            for (String line : clientLogs.get(clientId)) {
+                log.append(line).append("\n");
+            }
+            log.append("=== ").append(clientId).append(" log end ===\n");
+            return log.toString();
+        }
+
+        String result = Time.passed(msg.split(" ")[0],msg.split(" ")[1]);
+        clientLogs.get(clientId).add("Request: " + msg + "\nResult:\n" + result);
+        serverLog.append(clientId).append(" request at ").append(time).append(": \"").append(msg).append("\"\n");
+        return result;
+    }
 }
