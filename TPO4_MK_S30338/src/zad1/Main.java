@@ -13,7 +13,8 @@ import java.util.concurrent.*;
 public class Main {
 
   public static void main(String[] args) throws Exception {
-    String fileName = System.getProperty("user.home") + "/PassTimeServerOptions.yaml";
+//    String fileName = System.getProperty("user.home") + "/PassTimeServerOptions.yaml";
+    String fileName = "PassTimeServerOptions.yaml";
     Options opts = Tools.createOptionsFromYaml(fileName);
     String host = opts.getHost();
     int port = opts.getPort();
