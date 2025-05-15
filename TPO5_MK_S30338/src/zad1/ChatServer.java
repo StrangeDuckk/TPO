@@ -11,6 +11,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -28,20 +29,24 @@ public class ChatServer {
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
     private boolean isRunning;
-    private List<SocketChannel> loggedClients = Collections.synchronizedList(new ArrayList<>());
+    private static List<SocketChannel> loggedClients = Collections.synchronizedList(new ArrayList<>());
     private Map<SocketChannel, String> clients = new ConcurrentHashMap<>();
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
     public ChatServer(String host, int port) {
         this.host = host;
         this.port = port;
+
+        System.out.println("ChatServer -> ChatServer -> (39) "+ host + " " + port + "ok");
     }
 
     public void startServer() {
+        System.out.println("ChatServer -> startServer -> (43) ok" );
         this.serverThread = new Thread(()->{
             try {
                 selector = Selector.open();
                 serverSocketChannel = ServerSocketChannel.open();
                 serverSocketChannel.configureBlocking(false);
+                serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true); // ponowne uzycie socketa
                 serverSocketChannel.bind(new InetSocketAddress(host,port));
                 serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
                 isRunning = true;
@@ -52,6 +57,8 @@ public class ChatServer {
                     selector.select();
                     Set<SelectionKey> keys = selector.selectedKeys();
                     Iterator<SelectionKey> it = keys.iterator();
+
+                    System.out.println("ChatServer -> startServer -> uruchominie selectora (61) ok" );
 
                     while (it.hasNext()){
                         SelectionKey key = it.next();
@@ -73,6 +80,7 @@ public class ChatServer {
                             else{
                                 bb.flip();
                                 String message = new String(bb.array(),0,bb.limit()).trim();
+                                System.out.println("ChatServer -> startServer -> obsluga wiadomoaci (83) ok" + message );
                                 
                                 if (message.startsWith("LOGIN")){
                                     String id = message.substring(6);
@@ -102,6 +110,7 @@ public class ChatServer {
             }
         });
 
+        System.out.println("ChatServer -> startServer -> server start (113) ok");
         serverThread.start();
     }
 
@@ -112,15 +121,22 @@ public class ChatServer {
                 sc.write(bb.duplicate());
             }
         }
+
+        System.out.println("ChatServer -> broadcast -> (125) " + s + "ok");
     }
     private void logAppend(String s) {
         synchronized (serverLog){
             String time = simpleDateFormat.format(new Date());
             serverLog.append(time).append(" ").append(s).append("\n");
         }
+
+        System.out.println("ChatServer -> logAppendd -> (133) " + s + "ok");
     }
 
     public void stopServer() {
+        // todo tutaj nigdy nie wchodzi
+        //powinien wejsc po usunieciu wszystkich klientow i zatrzymaniu chatClient i hatClientTask
+        System.out.println("ChatServer -> stop server -> (138) " );
         isRunning = false;
         serverThread.interrupt();
         try {
@@ -135,8 +151,15 @@ public class ChatServer {
     }
 
     public String getServerLog() {
+        System.out.println("ChatServer -> getserverlog -> (152) "+serverLog );
         synchronized (serverLog) {
             return serverLog.toString();
+        }
+    }
+
+    public static List<SocketChannel> getLoggedClients() {
+        synchronized (loggedClients){
+            return  loggedClients;
         }
     }
 }
