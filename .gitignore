@@ -7,3 +7,5 @@ untitled/
 *.zip
 /TPO1_MK_S30338/TPO1res.txt
 *.iml
+/TPO6_MK_S30338/web-inf/apache-tomcat-9.0.105/lib
+/TPO6_MK_S30338/web-inf/db-derby-10.14.2.0-bin/lib

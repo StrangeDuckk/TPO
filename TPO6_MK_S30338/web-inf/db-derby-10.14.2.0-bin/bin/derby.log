@@ -1,0 +1,14 @@
+Wed May 21 14:45:56 CEST 2025 : Serwer sieciowy Apache Derby - 10.14.2.0 - (1828579) uruchomiony i gotowy do zaakceptowania po³¹czeñ na porcie 1527 w {3} 
+----------------------------------------------------------------
+Wed May 21 14:49:17 CEST 2025:
+ Uruchamianie wersji The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579) systemu Derby: instancja a816c00e-0196-f2e1-0b06-ffffbdf4c6f9
+w katalogu bazy danych C:\Users\kasia\Desktop\szko³a\Astudia\s4\TPO\TPO6_MK_S30338\db-derby-10.14.2.0-bin\bin\BookDB jdk.internal.loader.ClassLoaders$AppClassLoader@6d06d69c 
+
+java.vendor=Oracle Corporation
+java.runtime.version=17.0.8+9-LTS-211
+user.dir=C:\Users\kasia\Desktop\szko³a\Astudia\s4\TPO\TPO6_MK_S30338\db-derby-10.14.2.0-bin\bin
+os.name=Windows 10
+os.arch=amd64
+os.version=10.0
+derby.system.home=C:\Users\kasia\Desktop\szko³a\Astudia\s4\TPO\TPO6_MK_S30338\db-derby-10.14.2.0-bin\bin
+Uruchomiono program ³aduj¹cy klasê bazy danych - derby.database.classpath=''
