@@ -9,3 +9,8 @@ untitled/
 *.iml
 /TPO6_MK_S30338/web-inf/apache-tomcat-9.0.105/lib
 /TPO6_MK_S30338/web-inf/db-derby-10.14.2.0-bin/lib
+
+.bat
+.dat
+/TPO6_MK_S30338/web-inf/db-derby-10.14.2.0-bin/
+/TPO6_MK_S30338/lib/
